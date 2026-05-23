@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-from . import format_eid, headless, load_config
+from . import format_eid, headless, load_config, LAUNCH_ARGS
 
 PORTAL_NAME = "adnic"
 OUT = Path(__file__).parent.parent / "exploration" / PORTAL_NAME
@@ -21,7 +21,6 @@ _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
-_LAUNCH_ARGS = ["--disable-blink-features=AutomationControlled"]
 
 
 # the result page renders each field as "Label  :  Value" on its own row
@@ -79,7 +78,7 @@ def check(emirates_id: str, **_) -> dict:
     eid_digits = "".join(c for c in emirates_id if c.isdigit())  # most portals want digits
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=headless(), args=_LAUNCH_ARGS)
+        browser = p.chromium.launch(headless=headless(), args=LAUNCH_ARGS)
         ctx = browser.new_context(
             viewport={"width": 1366, "height": 850},
             user_agent=_UA,

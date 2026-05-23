@@ -18,7 +18,7 @@ import pytesseract
 from PIL import Image, ImageFilter
 from playwright.sync_api import sync_playwright
 
-from . import format_eid, headless, load_config
+from . import format_eid, headless, load_config, LAUNCH_ARGS
 
 _TESSERACT_DEFAULT = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 if Path(_TESSERACT_DEFAULT).exists():
@@ -36,7 +36,6 @@ _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
-_LAUNCH_ARGS = ["--disable-blink-features=AutomationControlled"]
 
 
 def _session_is_fresh() -> bool:
@@ -191,7 +190,7 @@ def check(emirates_id: str, captcha_solver=None, **_) -> dict:
     is_headless = headless() and not need_manual_browser
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=is_headless, args=_LAUNCH_ARGS)
+        browser = p.chromium.launch(headless=is_headless, args=LAUNCH_ARGS)
         ctx_kwargs = {
             "viewport": {"width": 1366, "height": 850},
             "user_agent": _UA,

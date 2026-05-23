@@ -44,3 +44,17 @@ def headless() -> bool:
     and explore.py (visible — easier to debug).
     """
     return os.getenv("TAMER_HEADLESS", "0") == "1"
+
+
+# Chromium launch flags shared by every portal.
+# --no-sandbox + --disable-dev-shm-usage are REQUIRED inside Docker/Railway
+# (Chromium crashes without them in containerised environments).
+LAUNCH_ARGS = [
+    "--disable-blink-features=AutomationControlled",
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",   # use /tmp instead of /dev/shm (64 MB in Docker)
+    "--disable-gpu",
+    "--disable-software-rasterizer",
+    "--no-zygote",               # avoids crash in single-process containers
+]

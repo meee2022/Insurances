@@ -209,8 +209,16 @@ def check_stream(eid: str, portals: str = "all"):
             entry = _PENDING_CAPTCHAS.pop(cid, {})
         return (entry.get("answer") or "") if got else ""
 
+    # Cap concurrent browsers: each Chromium needs ~250 MB RAM.
+    # Railway free tier = 512 MB → max 2 at once; paid = 8 GB → up to 7.
+    _RAM_MB   = int(os.environ.get("RAILWAY_MEMORY_MB", "512"))
+    _MAX_PAR  = max(1, min(len(selected), _RAM_MB // 300))
+
+    _sem = threading.Semaphore(_MAX_PAR)
+
     def run(p):
-        q.put(("result", _run_portal(p, eid, solver)))
+        with _sem:
+            q.put(("result", _run_portal(p, eid, solver)))
 
     def event_stream():
         # tell the UI which portals to render placeholder cards for

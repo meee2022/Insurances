@@ -20,7 +20,7 @@ import pytesseract
 from PIL import Image, ImageFilter
 from playwright.sync_api import sync_playwright
 
-from . import format_eid, load_config
+from . import format_eid, load_config, LAUNCH_ARGS
 
 # tesseract is installed by winget at this fixed path on Windows
 _TESSERACT_DEFAULT = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -139,7 +139,7 @@ def check(emirates_id: str, **_) -> dict:
     eid_digits = "".join(c for c in emirates_id if c.isdigit())
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True, args=LAUNCH_ARGS)
         # reuse a recent session if we have one
         ctx_kwargs = {"viewport": {"width": 1366, "height": 850}}
         if _session_is_fresh():

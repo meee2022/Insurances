@@ -6,7 +6,7 @@ login form, same dashboard structure, same eligibility form selectors.
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-from . import format_eid, headless, load_config
+from . import format_eid, headless, load_config, LAUNCH_ARGS
 
 
 def jbm_hims_check(portal_name: str, emirates_id: str, screenshot_root: Path) -> dict:
@@ -17,7 +17,7 @@ def jbm_hims_check(portal_name: str, emirates_id: str, screenshot_root: Path) ->
     out.mkdir(parents=True, exist_ok=True)
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=headless())
+        browser = p.chromium.launch(headless=headless(), args=LAUNCH_ARGS)
         ctx = browser.new_context(viewport={"width": 1366, "height": 850})
         page = ctx.new_page()
         page.on("dialog", lambda d: d.accept())
