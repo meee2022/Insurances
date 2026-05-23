@@ -47,6 +47,9 @@ PORTAL_LABELS = {
 
 
 def _read_config() -> dict:
+    raw = os.environ.get("CONFIG_JSON", "").strip()
+    if raw:
+        return json.loads(raw)
     return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
 
 

@@ -17,9 +17,16 @@ from pathlib import Path
 CONFIG_PATH = Path(__file__).parent.parent / "config.json"
 
 
+def _read_full_config() -> dict:
+    """Read config from env var CONFIG_JSON (Railway/cloud) or from file."""
+    raw = os.getenv("CONFIG_JSON", "").strip()
+    if raw:
+        return json.loads(raw)
+    return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+
+
 def load_config(portal_name: str) -> dict:
-    cfg = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
-    return cfg["portals"][portal_name]
+    return _read_full_config()["portals"][portal_name]
 
 
 def format_eid(raw: str) -> str:
