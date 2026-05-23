@@ -242,5 +242,8 @@ def captcha_submit(body: dict = Body(...)):
 if __name__ == "__main__":
     import uvicorn
 
-    print("Open http://localhost:8000  in your browser")
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    # Railway / cloud: listen on 0.0.0.0 and use $PORT env var
+    port = int(os.environ.get("PORT", 8000))
+    host = "0.0.0.0" if os.environ.get("RAILWAY_ENVIRONMENT") or os.environ.get("PORT") else "127.0.0.1"
+    print(f"Open http://localhost:{port}  in your browser")
+    uvicorn.run(app, host=host, port=port)
