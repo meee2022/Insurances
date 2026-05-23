@@ -20,13 +20,102 @@ from pathlib import Path
 # need browser windows popping up. Set BEFORE we import any portal module.
 os.environ.setdefault("TAMER_HEADLESS", "1")
 
-from fastapi import Body, FastAPI, HTTPException
+import hashlib
+import hmac
+import secrets
+
+from fastapi import Body, FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 
 ROOT = Path(__file__).parent
 SESSIONS_DIR = ROOT / ".sessions"
 SESSIONS_DIR.mkdir(exist_ok=True)
 CONFIG_PATH = ROOT / "config.json"
+
+# ── Auth ──────────────────────────────────────────────────────────────────────
+# Set APP_USER / APP_PASS as Railway environment variables to enable login.
+# If neither is set the app runs without a password (fine for localhost).
+_AUTH_USER = os.environ.get("APP_USER", "").strip()
+_AUTH_PASS = os.environ.get("APP_PASS", "").strip()
+_AUTH_ENABLED = bool(_AUTH_USER and _AUTH_PASS)
+
+# Cookie-based session so the browser only shows the login page once.
+_SESSION_COOKIE = "tamer_session"
+_SESSION_TOKENS: set[str] = set()   # valid tokens (in-memory, reset on restart)
+
+_LOGIN_PAGE = """<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تسجيل الدخول · AL JAZEERAH</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;display:grid;place-items:center;
+       background:radial-gradient(ellipse 80% 60% at 60% -10%,rgba(0,212,170,.18),transparent 55%),#07091a;
+       font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8edf6}
+  .box{width:min(92vw,380px);background:rgba(255,255,255,.055);
+       border:1px solid rgba(255,255,255,.1);border-radius:24px;
+       padding:36px 32px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+  .logo{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;
+        background:linear-gradient(135deg,#00a887,#00d4aa);
+        box-shadow:0 8px 24px rgba(0,212,170,.4);margin:0 auto 20px}
+  h1{text-align:center;font-size:20px;font-weight:700;margin-bottom:4px}
+  p{text-align:center;font-size:13px;color:#6b7a99;margin-bottom:28px}
+  label{display:block;font-size:12px;color:#6b7a99;margin-bottom:6px;font-weight:600}
+  input{width:100%;padding:13px 16px;border-radius:12px;
+        border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);
+        color:#e8edf6;font-size:15px;outline:none;margin-bottom:16px;
+        font-family:inherit;transition:border-color .2s}
+  input:focus{border-color:#00d4aa;background:rgba(0,212,170,.05)}
+  button{width:100%;padding:14px;border-radius:12px;border:none;cursor:pointer;
+         background:linear-gradient(135deg,#00a887,#00d4aa);
+         color:#fff;font-size:16px;font-weight:700;font-family:inherit;
+         box-shadow:0 8px 24px rgba(0,212,170,.35);transition:all .2s}
+  button:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,212,170,.5)}
+  .err{background:rgba(244,63,94,.15);border:1px solid rgba(244,63,94,.3);
+       border-radius:10px;padding:10px 14px;font-size:13px;
+       color:#f43f5e;text-align:center;margin-bottom:16px;display:none}
+  .err.show{display:block}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  </div>
+  <h1>فحص تأمين المريض</h1>
+  <p>AL JAZEERAH HEALTH CENTER</p>
+  __ERR__
+  <form method="POST" action="/__login">
+    <label>اسم المستخدم</label>
+    <input name="username" type="text" autocomplete="username" required autofocus>
+    <label>كلمة السر</label>
+    <input name="password" type="password" autocomplete="current-password" required>
+    <button type="submit">دخول</button>
+  </form>
+</div>
+</body></html>"""
+
+
+def _check_auth(request: Request) -> bool:
+    """Return True if the request is authenticated (or auth is disabled)."""
+    if not _AUTH_ENABLED:
+        return True
+    token = request.cookies.get(_SESSION_COOKIE, "")
+    return token in _SESSION_TOKENS
+
+
+def _login_response(error: bool = False) -> Response:
+    err_html = '<div class="err show">اسم المستخدم أو كلمة السر غلط</div>' if error else '<div class="err"></div>'
+    html = _LOGIN_PAGE.replace("__ERR__", err_html)
+    return Response(content=html, media_type="text/html", status_code=401 if error else 200)
+
 
 AVAILABLE = ["almadallah", "adnic", "whealth", "lifeline", "aafiya", "gig_axa", "globalmed"]
 
@@ -98,6 +187,36 @@ def _run_portal(portal_name: str, eid: str, captcha_solver=None) -> dict:
 app = FastAPI(title="Insurance Eligibility Check")
 
 
+# ── Auth middleware ────────────────────────────────────────────────────────────
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    """Block every route unless the user has a valid session cookie."""
+    path = request.url.path
+    # always allow the login form itself
+    if path == "/__login":
+        return await call_next(request)
+    if not _check_auth(request):
+        return _login_response()
+    return await call_next(request)
+
+
+@app.post("/__login")
+async def do_login(request: Request):
+    form = await request.form()
+    username = (form.get("username") or "").strip()
+    password = (form.get("password") or "").strip()
+    user_ok = hmac.compare_digest(username, _AUTH_USER)
+    pass_ok = hmac.compare_digest(password, _AUTH_PASS)
+    if _AUTH_ENABLED and not (user_ok and pass_ok):
+        return _login_response(error=True)
+    token = secrets.token_hex(32)
+    _SESSION_TOKENS.add(token)
+    resp = Response(status_code=302, headers={"Location": "/"})
+    resp.set_cookie(_SESSION_COOKIE, token, httponly=True, samesite="lax", max_age=86400 * 30)
+    return resp
+
+
+# ── Pages ──────────────────────────────────────────────────────────────────────
 @app.get("/")
 def index():
     return FileResponse(ROOT / "static" / "index.html")
