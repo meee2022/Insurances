@@ -1,0 +1,31 @@
+# ── Credentials (NEVER commit real passwords) ──
+config.json
+
+# ── Browser sessions / cookies ──
+.sessions/
+
+# ── Python ──
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# ── Exploration screenshots & debug HTML ──
+exploration/
+
+# ── Source data ──
+Insurance.xlsx
+
+# ── OS / editor ──
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp

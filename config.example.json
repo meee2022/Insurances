@@ -1,0 +1,55 @@
+{
+  "portals": {
+    "almadallah": {
+      "url": "https://provider-almadallah.axs.health/login",
+      "username": "YOUR_USERNAME",
+      "password": "YOUR_PASSWORD"
+    },
+    "adnic": {
+      "url": "https://online.adnic.ae/eportal/providers.html",
+      "username": "YOUR_USERNAME",
+      "password": "YOUR_PASSWORD"
+    },
+    "whealth": {
+      "url": "https://whealthapp.whealthtpa.com/JBM_HIMS/HimsPortal/Forms/Login.aspx",
+      "username": "YOUR_USERNAME",
+      "password": "YOUR_PASSWORD"
+    },
+    "lifeline": {
+      "url": "https://tpa.lifelinetpa.com/JBM_HIMS/HimsPortal/LifeLine/Forms/Login.aspx",
+      "username": "YOUR_USERNAME",
+      "password": "YOUR_PASSWORD"
+    },
+    "gig_axa": {
+      "url": "https://partners.gig-gulf.com/ProviderLogin/login.aspx",
+      "username": "YOUR_USERNAME",
+      "password": "YOUR_PASSWORD"
+    },
+    "aafiya": {
+      "url": "https://tpa.aafiya.ae/AafiyaTPA/Login",
+      "member_url": "https://tpa.aafiya.ae/AafiyaTPA/MemberInformation#/:-%7C",
+      "username": "YOUR_USERNAME",
+      "password": "YOUR_PASSWORD"
+    },
+    "globalmed": {
+      "url": "https://genix.globemedgulf.com/EligibilityCheck/",
+      "username": "YOUR_USERNAME",
+      "password": "YOUR_PASSWORD"
+    },
+    "inayahtpa": {
+      "url": "https://provider.inayahtpa.com/Provider/login",
+      "username": "YOUR_USERNAME",
+      "password": "YOUR_PASSWORD"
+    },
+    "fmc": {
+      "url": "https://realtime.fmcnetwork.net",
+      "username": "YOUR_USERNAME",
+      "password": "YOUR_PASSWORD"
+    },
+    "healthaspire": {
+      "url": "https://portal.healthaspire.com/login",
+      "username": "YOUR_USERNAME",
+      "password": "YOUR_PASSWORD"
+    }
+  }
+}

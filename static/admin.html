@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة البوابات · AL JAZEERAH HEALTH CENTER</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gray-50:#fafbfc; --gray-100:#f3f5f8; --gray-200:#e6e9ef; --gray-300:#d4d9e1;
+      --gray-400:#99a1b1; --gray-500:#6c7484; --gray-600:#4a5263; --gray-700:#323b4d;
+      --gray-800:#1f2738; --gray-900:#0f1524; --gray-950:#060914;
+      --accent:#4f46e5; --accent-hover:#4338ca; --accent-soft:#eef2ff;
+      --ok:#059669; --ok-soft:#d1fae5; --ok-bg:#ecfdf5;
+      --bad:#dc2626; --bad-soft:#fee2e2; --bad-bg:#fef2f2;
+      --warn:#d97706; --warn-soft:#fef3c7; --warn-bg:#fffbeb;
+      --info:#2563eb; --info-soft:#dbeafe; --info-bg:#eff6ff;
+      --radius:14px;
+      --shadow-2: 0 4px 16px rgba(15,23,42,0.08);
+      --shadow-3: 0 16px 40px rgba(2,6,23,0.32);
+      --font-ar: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
+      --font-en: 'Inter', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-ar), var(--font-en);
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--gray-800);
+      background:
+        radial-gradient(800px 600px at 0% -10%, rgba(79,70,229,0.18), transparent 60%),
+        radial-gradient(700px 500px at 100% 110%, rgba(16,185,129,0.08), transparent 60%),
+        linear-gradient(160deg, var(--gray-950) 0%, var(--gray-900) 60%, var(--gray-800) 100%);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      padding: 32px 22px 80px;
+    }
+    .shell { max-width: 1280px; margin: 0 auto; }
+
+    /* Topbar */
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+    .brand { display: flex; align-items: center; gap: 12px; color: white; }
+    .brand-logo {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
+      border-radius: 11px; display: grid; place-items: center;
+      box-shadow: 0 8px 24px rgba(79,70,229,0.45);
+    }
+    .brand-text h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    .brand-text p { font-size: 12px; color: rgba(255,255,255,0.55); font-family: var(--font-en); }
+    .nav { display: flex; gap: 6px; }
+    .nav-link {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 13.5px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-link:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-link.active { background: rgba(255,255,255,0.12); color: white; }
+    .nav-link svg { width: 14px; height: 14px; }
+
+    /* Page heading */
+    .page-head { color: white; margin-bottom: 18px; }
+    .page-head h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .page-head p { font-size: 13.5px; color: rgba(255,255,255,0.55); }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      color: rgba(255,255,255,0.6);
+      font-size: 12.5px;
+    }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+    .dot.ok { background: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.18); }
+    .dot.todo { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.18); }
+    .dot.fresh { background: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.18); }
+    .dot.expired { background: #6b7280; box-shadow: 0 0 0 3px rgba(107,114,128,0.18); }
+
+    /* Portal cards */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 14px;
+    }
+    .portal-card {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-2);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .portal-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(2,6,23,0.18); }
+
+    .pc-band {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .pc-name { display: flex; align-items: center; gap: 11px; }
+    .pc-icon {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      color: white;
+      display: grid; place-items: center;
+      font-family: var(--font-en);
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .pc-title {
+      font-family: var(--font-en);
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--gray-900);
+    }
+    .pc-subtitle {
+      font-size: 11.5px;
+      color: var(--gray-500);
+      font-weight: 400;
+      margin-top: 1px;
+    }
+    .pc-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+    .pc-status.ok { background: var(--ok-soft); color: var(--ok); }
+    .pc-status.todo { background: var(--warn-soft); color: var(--warn); }
+
+    .pc-body { padding: 14px 16px; }
+
+    /* Form */
+    .form-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .form-row label {
+      flex-shrink: 0;
+      width: 70px;
+      font-size: 11px;
+      color: var(--gray-500);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-row .input {
+      flex: 1;
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      background: var(--gray-50);
+      transition: all 0.15s;
+      direction: ltr;
+      text-align: left;
+      color: var(--gray-900);
+      min-width: 0;
+    }
+    .form-row .input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+    }
+    .form-row .input.dirty {
+      border-color: var(--warn);
+      background: var(--warn-bg);
+    }
+    .form-row .pw-wrap { flex: 1; position: relative; min-width: 0; }
+    .pw-wrap .input { width: 100%; padding-left: 36px; }
+    .pw-toggle {
+      position: absolute;
+      left: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 26px; height: 26px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--gray-500);
+      display: grid; place-items: center;
+      border-radius: 5px;
+    }
+    .pw-toggle:hover { background: var(--gray-100); color: var(--gray-800); }
+    .pw-toggle svg { width: 15px; height: 15px; }
+
+    /* Session pill */
+    .session-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 12px 0 12px;
+      padding: 8px 12px;
+      background: var(--gray-50);
+      border-radius: 8px;
+      font-size: 12px;
+    }
+    .session-row .label { color: var(--gray-500); }
+    .session-row .session-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+    .session-pill.fresh { background: var(--info-soft); color: var(--info); }
+    .session-pill.expired { background: var(--gray-200); color: var(--gray-600); }
+    .session-pill.none { background: var(--gray-100); color: var(--gray-500); }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      font-size: 12.5px;
+      font-weight: 600;
+      font-family: inherit;
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      background: white;
+      color: var(--gray-700);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn:hover:not(:disabled) {
+      border-color: var(--gray-300);
+      background: var(--gray-50);
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.primary {
+      background: var(--gray-900);
+      color: white;
+      border-color: var(--gray-900);
+    }
+    .btn.primary:hover:not(:disabled) {
+      background: black;
+    }
+    .btn.danger:hover:not(:disabled) {
+      border-color: var(--bad);
+      color: var(--bad);
+      background: var(--bad-bg);
+    }
+    .btn svg { width: 14px; height: 14px; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--gray-900);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 10px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+      font-size: 13.5px;
+      z-index: 1000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.25s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.ok { background: var(--ok); }
+    .toast.bad { background: var(--bad); }
+    .toast svg { width: 16px; height: 16px; }
+
+    /* Loading skeleton */
+    .skel-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 20px;
+      height: 200px;
+      background: linear-gradient(90deg, var(--gray-100) 0%, white 50%, var(--gray-100) 100%);
+      background-size: 200% 100%;
+      animation: skel 1.4s ease-in-out infinite;
+    }
+    @keyframes skel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    @media (max-width: 720px) {
+      body { padding: 18px 12px 50px; }
+      .grid { grid-template-columns: 1fr; }
+      .form-row label { width: 56px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>إدارة البوابات</h1>
+          <p>Portal Credentials &amp; Sessions</p>
+        </div>
+      </div>
+      <div class="nav">
+        <a href="/" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
+          الرئيسية
+        </a>
+        <a href="/admin" class="nav-link active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6"/><path d="M4.22 4.22l4.24 4.24m7.08 7.08l4.24 4.24"/></svg>
+          الإعدادات
+        </a>
+      </div>
+    </div>
+
+    <!-- Page head -->
+    <div class="page-head">
+      <h2>🔧 إدارة بيانات الدخول</h2>
+      <p>عدّل username/password لكل بوابة، اختبر الدخول، وإدارة الـsessions المحفوظة.</p>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <span class="legend-item"><span class="dot ok"></span> البوابة مُفعّلة في الأداة</span>
+      <span class="legend-item"><span class="dot todo"></span> لسة مش مُفعّلة</span>
+      <span class="legend-item"><span class="dot fresh"></span> Session شغّال</span>
+      <span class="legend-item"><span class="dot expired"></span> Session منتهي / غير موجود</span>
+    </div>
+
+    <!-- Grid -->
+    <div class="grid" id="grid">
+      <div class="skel-card"></div>
+      <div class="skel-card"></div>
+      <div class="skel-card"></div>
+      <div class="skel-card"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const ICONS = {
+      eye:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>',
+      eyeOff:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a16.71 16.71 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+      save:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
+      external: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
+      trash:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>',
+      check:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+      x:        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+      shield:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const grid = $('grid');
+    const toast = $('toast');
+
+    function showToast(msg, kind = 'ok') {
+      toast.className = `toast ${kind} show`;
+      toast.innerHTML = `${kind === 'ok' ? ICONS.check : ICONS.x} ${msg}`;
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function abbr(name) {
+      const map = {
+        almadallah:'AM', adnic:'AD', whealth:'WH', lifeline:'LL',
+        inayahtpa:'IN', gig_axa:'GG', globalmed:'GM', aafiya:'AF',
+        fmc:'FM', healthaspire:'HA',
+      };
+      return map[name] || name.slice(0,2).toUpperCase();
+    }
+
+    function sessionPill(s) {
+      if (!s.exists) return `<span class="session-pill none">لا يوجد session</span>`;
+      const age = s.age_hours;
+      if (age < 8) return `<span class="session-pill fresh"><span class="dot fresh"></span> Session شغّال (${age} ساعة)</span>`;
+      return `<span class="session-pill expired"><span class="dot expired"></span> منتهي (${age} ساعة)</span>`;
+    }
+
+    function renderPortalCard(p) {
+      const card = document.createElement('div');
+      card.className = 'portal-card';
+      card.dataset.name = p.name;
+      card.dataset.password = p.password;
+      card.dataset.username = p.username;
+      card.dataset.url = p.url;
+
+      const statusClass = p.implemented ? 'ok' : 'todo';
+      const statusText  = p.implemented ? 'مُفعّلة' : 'لسة مش مُفعّلة';
+
+      card.innerHTML = `
+        <div class="pc-band">
+          <div class="pc-name">
+            <div class="pc-icon">${abbr(p.name)}</div>
+            <div>
+              <div class="pc-title">${p.label_en}</div>
+              ${p.label_ar ? `<div class="pc-subtitle">${p.label_ar}</div>` : ''}
+            </div>
+          </div>
+          <div class="pc-status ${statusClass}">
+            <span class="dot ${statusClass}"></span> ${statusText}
+          </div>
+        </div>
+        <div class="pc-body">
+          <div class="form-row">
+            <label>URL</label>
+            <input class="input" data-field="url" value="${p.url}">
+          </div>
+          <div class="form-row">
+            <label>USER</label>
+            <input class="input" data-field="username" value="${p.username}">
+          </div>
+          <div class="form-row">
+            <label>PASS</label>
+            <div class="pw-wrap">
+              <button class="pw-toggle" data-action="toggle-pw" title="إظهار/إخفاء">${ICONS.eye}</button>
+              <input class="input" data-field="password" type="password" value="${p.password}">
+            </div>
+          </div>
+          <div class="session-row">
+            <span class="label">حالة الـSession:</span>
+            ${sessionPill(p.session)}
+          </div>
+          <div class="actions">
+            <button class="btn primary" data-action="save">${ICONS.save} حفظ</button>
+            <button class="btn" data-action="open">${ICONS.external} افتح الموقع</button>
+            <button class="btn danger" data-action="clear-session" ${!p.session.exists ? 'disabled' : ''}>${ICONS.trash} مسح الـsession</button>
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+    }
+
+    async function loadPortals() {
+      const res = await fetch('/admin/portals');
+      const data = await res.json();
+      grid.innerHTML = '';
+      data.portals.forEach(renderPortalCard);
+    }
+
+    // Action delegation
+    grid.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const card = btn.closest('.portal-card');
+      const name = card.dataset.name;
+      const action = btn.dataset.action;
+
+      if (action === 'toggle-pw') {
+        const pw = card.querySelector('[data-field="password"]');
+        const showing = pw.type === 'text';
+        pw.type = showing ? 'password' : 'text';
+        btn.innerHTML = showing ? ICONS.eye : ICONS.eyeOff;
+      }
+      else if (action === 'save') {
+        const url = card.querySelector('[data-field="url"]').value.trim();
+        const username = card.querySelector('[data-field="username"]').value.trim();
+        const password = card.querySelector('[data-field="password"]').value;
+        btn.disabled = true;
+        try {
+          const r = await fetch(`/admin/portals/${name}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url, username, password }),
+          });
+          if (r.ok) {
+            showToast('تم حفظ التعديلات بنجاح');
+            card.dataset.url = url;
+            card.dataset.username = username;
+            card.dataset.password = password;
+          } else {
+            showToast('فشل الحفظ', 'bad');
+          }
+        } finally { btn.disabled = false; }
+      }
+      else if (action === 'open') {
+        await fetch(`/admin/portals/${name}/open`, { method: 'POST' });
+        showToast('فُتح الموقع في المتصفح');
+      }
+      else if (action === 'clear-session') {
+        if (!confirm('متأكد عايز تمسح الـsession؟ هتحتاج تـlogin تاني.')) return;
+        const r = await fetch(`/admin/portals/${name}/clear-session`, { method: 'POST' });
+        if (r.ok) {
+          showToast('اتمسح الـsession');
+          loadPortals();
+        }
+      }
+    });
+
+    // detect dirty fields
+    grid.addEventListener('input', (e) => {
+      const inp = e.target;
+      if (!inp.matches('input.input')) return;
+      const card = inp.closest('.portal-card');
+      const field = inp.dataset.field;
+      if (!field) return;
+      const original = card.dataset[field] ?? '';
+      inp.classList.toggle('dirty', inp.value !== original);
+    });
+
+    loadPortals();
+  </script>
+</body>
+</html>
